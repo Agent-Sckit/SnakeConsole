@@ -3,7 +3,7 @@
 #include <conio.h>
 #include "Game.h"
 #include "SnakeConsoleFunctions.h"
-#include "Food.h"
+
 
 
 
@@ -12,11 +12,12 @@ void Game::Init()
 	consoleInit();
 	generateLevel();
 	generateSnakeBody();
+	changeFoodPosition(apple);
 }
 
 void Game::Run()
 {
-	while (true)
+	while (isNotGameOver)
 	{
 		inputCheck();
 		if (canUpdate())
@@ -25,12 +26,13 @@ void Game::Run()
 			print();
 		}
 	}
+	std::cout << "Gameover! Your Score is: " << score << "\n";
 	return;
 }
 
 void Game::inputCheck()
 {
-	if (_kbhit())
+	if (_kbhit() && canInput)
 	{
 		switch (_getch())
 		{
@@ -49,6 +51,8 @@ void Game::inputCheck()
 		default:
 			break;
 		}
+
+		canInput = false;
 	}
 }
 
@@ -57,32 +61,37 @@ void Game::update()
 	bool updateStatus{true};
 	if (snakeBodies[0]->isMoving())
 	{
-		
-		//for (int i=size(snakeBodies) - 1; i >= 0; i--)
+		bool increaseSnakeLength{false};
 		for (int i{ 0 }; i < size(snakeBodies); i++)
 		{
 			if (i == size(snakeBodies) - 1)
 			{
-				pixels[snakeBodies[i]->position.x][snakeBodies[i]->position.y] = emptyPixel;
+				if (increaseSnakeLength)
+				{
+					snakeBodies.push_back(new SnakeBody(snakeBodies[i]->position.x, snakeBodies[i]->position.y));
+					pixels[snakeBodies[i]->position.x][snakeBodies[i]->position.y] = snakeBodies[size(snakeBodies)-1];
+					snakeBodies[size(snakeBodies) - 1]->targetPosition = snakeBodies[size(snakeBodies) - 2]->position;
+					increaseSnakeLength = false;
+					
+				}
+				else
+				{
+					pixels[snakeBodies[i]->position.x][snakeBodies[i]->position.y] = emptyPixel;
+				}
 			}
 			if (i != 0)
 			{
 				snakeBodies[i]->position = snakeBodies[i]->targetPosition;
 				pixels[snakeBodies[i]->position.x][snakeBodies[i]->position.y] = snakeBodies[i];
 				snakeBodies[i]->targetPosition = snakeBodies[i - 1]->position;
-				//pixels[snakeBodies[i].position.x][snakeBodies[i].position.y] = emptyPixel;
 			}
 
 			else
 			{
 				snakeBodies[i]->move();
-				updateStatus = evaluateNewSnakeHeadPosition(snakeBodies[i]->position);				
+				isNotGameOver = evaluateNewSnakeHeadPosition(snakeBodies[i]->position, increaseSnakeLength);
 			}
-		}
-
-		if (!updateStatus)
-			system("pause");
-		
+		}		
 	}
 }
 
@@ -102,11 +111,9 @@ void Game::print()
 		}
 		cout << "\n";
 	}
+	cout << "Score: " << score << "\n";
 
-	/*cout << "\n snakeBodies[0].snakeMovement.X: " << snakeBodies[0].snakeMovement.getXVelocity();
-	cout << "\n snakeBodies[0].snakeMovement.Y: " << snakeBodies[0].snakeMovement.getYVelocity();
-	cout << "\n snakeBodies[0].position.x: " << snakeBodies[0].position.x;
-	cout << "\n snakeBodies[0].position.y: " << snakeBodies[0].position.y;*/
+	canInput = true;
 }
 
 void Game::generateLevel()
@@ -124,7 +131,6 @@ void Game::generateLevel()
 			{
 				pixels[j][i] = emptyPixel;
 			}
-			
 		}
 	}
 }
@@ -164,21 +170,42 @@ bool Game::canUpdate()
 	}
 }
 
-bool Game::evaluateNewSnakeHeadPosition(Position pos)
+bool Game::evaluateNewSnakeHeadPosition(Position pos, bool& increaseSnakeLength)
 {
 	if (dynamic_cast<Obstacle*>(pixels[pos.x][pos.y]) || dynamic_cast<SnakeBody*>(pixels[pos.x][pos.y]))
 	{
 		pixels[pos.x][pos.y] = snakeBodies[0];
+		increaseSnakeLength = false;
 		return false;
 	}
 	else if (dynamic_cast<Food*>(pixels[pos.x][pos.y]))
 	{
+		changeFoodPosition(dynamic_cast<Food*>(pixels[pos.x][pos.y]));
+		score++;
+		increaseSnakeLength = true;
 		pixels[pos.x][pos.y] = snakeBodies[0];
 		return true;
 	}
 
 	pixels[pos.x][pos.y] = snakeBodies[0];
+	increaseSnakeLength = false;
 	return true;
+}
 
-	
+void Game::changeFoodPosition(Food* food)
+{
+	bool noLocationFound{ true };
+	int randomX{};
+	int randomY{};
+
+	do
+	{
+		randomX = std::rand() % screenWidth;
+		randomY = std::rand() % screenHeight;
+		if (!(dynamic_cast<Obstacle*>(pixels[randomX][randomY]) || dynamic_cast<SnakeBody*>(pixels[randomY][randomY])))
+		{
+			pixels[randomX][randomY] = food;
+			noLocationFound = false;
+		}
+	} while (noLocationFound);
 }

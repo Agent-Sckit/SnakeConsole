@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Food.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Obstacle.cpp" />
@@ -134,6 +135,7 @@
     <ClCompile Include="SnakeBody.cpp" />
     <ClCompile Include="SnakeConsoleFunctions.cpp" />
     <ClCompile Include="SnakeMovement.cpp" />
+    <ClCompile Include="TestFunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Food.h" />
@@ -144,6 +146,7 @@
     <ClInclude Include="Pixel.h" />
     <ClInclude Include="SnakeBody.h" />
     <ClInclude Include="SnakeConsoleFunctions.h" />
+    <ClInclude Include="TestFunctions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

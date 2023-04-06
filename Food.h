@@ -3,5 +3,6 @@
 
 class Food : public Pixel
 {
-
+public:
+	Food();
 };
